@@ -1,6 +1,9 @@
-//$$ solution.h                      // solve routines
+/// \ingroup newmat
+///@{
 
-#include "boolean.h"
+/// \file solution.h
+/// One dimensional solve routine.
+
 #include "myexcept.h"
 
 #ifdef use_namespace
@@ -39,7 +42,7 @@ public:
                                        // set x, return value
    virtual bool IsValid(Real X);
    operator Real();                    // implicit conversion
-   virtual ~R1_R1() {}                 // to keep gnu happy
+   virtual ~R1_R1() {}                 // keep gnu happy
 };
 
 class SolutionException : public BaseException
@@ -92,4 +95,5 @@ private:
 // body file: solution.cpp
 
 
+///@}
 

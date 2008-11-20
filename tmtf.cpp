@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtf.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 #define WANT_MATH
@@ -82,17 +88,38 @@ static void SlowDTT(const ColumnVector& a, ColumnVector& c, ColumnVector& s)
    s(1) = s(n1) = 0;
 }
 
+void SlowFT2(const Matrix& U, const Matrix& V, Matrix& X, Matrix& Y)
+{
+   Tracer trace("SlowFT2");
+   int m = U.Nrows(); int n = U.Ncols();
+   if (m != V.Nrows() || n != V.Ncols() || m == 0 || n == 0)
+      Throw(ProgramException("Matrix dimensions unequal or zero", U, V));
+   X.ReSize(U); Y.ReSize(V);
+   const Real pi2 = atan(1.0) * 8.0;
+   for (int i = 0; i < m; ++i) for (int j = 0; j < n; ++j)
+   {
+      Real sumr = 0.0, sumi = 0.0;
+      for (int k = 0; k < m; ++k) for (int l = 0; l < n; ++l)
+      {
+         Real a = -pi2 * ( (Real)k * (Real)i / (Real)m
+            + (Real)j * (Real)l / (Real)n );
+         Real cs = cos(a); Real sn = sin(a);
+         sumr += cs * U(k+1,l+1) - sn * V(k+1,l+1);
+         sumi += cs * V(k+1,l+1) + sn * U(k+1,l+1);
+      }
+      X(i+1,j+1) = sumr; Y(i+1,j+1) = sumi;
+   }
+}
+
+
 static void test(int n)
 {
    Tracer et("Test FFT");
+   MultWithCarry mwc;
 
    ColumnVector A(n), B(n), X, Y;
    for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A.element(i) = fabs(sin(7.0*f) + 0.5 * cos(19.0 * f)) + (Real)i/(Real)n;
-      B.element(i) = fabs(0.25 * cos(31.0 * f)) + (Real)i/(Real)n;
-   }
+      { A.element(i) = mwc.Next(); B.element(i) = mwc.Next(); }
    FFT(A, B, X, Y); FFTI(X, Y, X, Y);
    X = X - A; Y = Y - B;
    Clean(X,0.000000001); Clean(Y,0.000000001); Print(X); Print(Y);
@@ -101,13 +128,10 @@ static void test(int n)
 static void test1(int n)
 {
    Tracer et("Test RealFFT");
+   MultWithCarry mwc;
 
    ColumnVector A(n), B(n), X, Y;
-   for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A.element(i) = fabs(sin(7.0*f) + 0.5 * cos(19.0 * f)) + (Real)i/(Real)n;
-   }
+   for (int i=0; i<n; i++) A.element(i) = mwc.Next();
    B = 0.0;
    FFT(A, B, X, Y);
    B.CleanUp();                 // release some space
@@ -125,14 +149,11 @@ static void test1(int n)
 static void test2(int n)
 {
    Tracer et("cf FFT and slow FT");
+   MultWithCarry mwc;
 
    ColumnVector A(n), B(n), X, Y, X1, Y1;
    for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A.element(i) = fabs(sin(7.0*f) - 0.5 * cos(19.0 * f)) + (Real)i/(Real)n;
-      B.element(i) = fabs(0.25 * cos(31.0 * f)) - (Real)i/(Real)n;
-   }
+      { A.element(i) = mwc.Next(); B.element(i) = mwc.Next(); }
    FFT(A, B, X, Y);
    SlowFT(A, B, X1, Y1);
    X = X - X1; Y = Y - Y1;
@@ -142,14 +163,10 @@ static void test2(int n)
 static void test3(int n)
 {
    Tracer et("cf slow and fast DCT_II and DST_II");
+   MultWithCarry mwc;
 
    ColumnVector A(n), X, Y, X1, Y1;
-   for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A.element(i) = fabs(sin(7.0*f) - 0.55 * cos(19.0 * f)
-		  + .73 * sin(6.0 * f)) + (Real)i/(Real)n;
-   }
+   for (int i=0; i<n; i++) A.element(i) = mwc.Next();
    DCT_II(A, X); DST_II(A, Y);
    SlowDTT_II(A, X1, Y1);
    X -= X1; Y -= Y1;
@@ -159,14 +176,10 @@ static void test3(int n)
 static void test4(int n)
 {
    Tracer et("Test DCT_II");
+   MultWithCarry mwc;
 
    ColumnVector A1(n);
-   for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A1.element(i) =
-         fabs(sin(7.0*f) + 0.7588 * cos(19.0 * f) + (Real)i/(Real)n);
-   }
+   for (int i=0; i<n; i++) A1.element(i) = mwc.Next();
    // do DCT II by ordinary FFT
    ColumnVector P(2*n), Q(2*n);
    P = 0.0; Q = 0.0; P.Rows(1,n) = A1;
@@ -190,14 +203,10 @@ static void test4(int n)
 static void test5(int n)
 {
    Tracer et("Test DST_II");
+   MultWithCarry mwc;
 
    ColumnVector A1(n);
-   for (int i=0; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A1.element(i) =
-         fabs(sin(11.0*f) + 0.7588 * cos(19.0 * f) + (Real)i/(Real)n);
-   }
+   for (int i=0; i<n; i++) A1.element(i) = mwc.Next();
    // do DST II by ordinary FFT
    ColumnVector P(2*n), Q(2*n);
    P = 0.0; Q = 0.0; P.Rows(1,n) = A1;
@@ -221,15 +230,12 @@ static void test5(int n)
 static void test6(int n)
 {
    Tracer et("Test DST");
+   MultWithCarry mwc;
 
    ColumnVector A1(n+1);
    A1(1) = A1(n+1) = 0;
-   for (int i=1; i<n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A1.element(i) =
-         fabs(sin(11.0*f) + 0.7588 * cos(19.0 * f) + (Real)i/(Real)n);
-   }
+   for (int i=1; i<n; i++) A1.element(i) = mwc.Next();
+
    // do DST by ordinary FFT
    ColumnVector P(2*n), Q(2*n); P = 0.0; Q = 0.0; P.Rows(1,n+1) = A1;
    FFT(P, Q, P, Q);
@@ -249,14 +255,11 @@ static void test6(int n)
 static void test7(int n)
 {
    Tracer et("Test DCT");
+   MultWithCarry mwc;
 
    ColumnVector A1(n+1);
-   for (int i=0; i<=n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A1.element(i) =
-         fabs(sin(17.0*f) + 0.6399 * cos(23.0 * f) + 1.32*(Real)i/(Real)n);
-   }
+   for (int i=0; i<=n; i++) A1.element(i) = mwc.Next();
+
    // do DCT by ordinary FFT
    ColumnVector P(2*n), Q(2*n); P = 0.0; Q = 0.0; P.Rows(1,n+1) = A1;
    P(1) /= 2.0; P(n+1) /= 2.0;
@@ -275,18 +278,32 @@ static void test7(int n)
 static void test8(int n)
 {
    Tracer et("cf slow and fast DCT and DST");
+   MultWithCarry mwc;
 
    ColumnVector A(n+1), X, Y, X1, Y1;
-   for (int i=0; i<=n; i++)
-   {
-      Real f = 6.2831853071795864769*i/n;
-      A.element(i) = fabs(sin(7.0*f) - 0.5 * cos(19.0 * f) +
-         0.3 * (Real)i/(Real)n);
-   }
+   for (int i=0; i<=n; i++) A.element(i) = mwc.Next();
+
    DCT(A, X); DST(A, Y);
    SlowDTT(A, X1, Y1);
    X -= X1; Y -= Y1;
    Clean(X,0.000000001); Clean(Y,0.000000001); Print(X); Print(Y);
+}
+
+static void test9(int m, int n)
+{
+   Tracer et("cf FFT2 and slow FT2");
+   MultWithCarry mwc;
+
+   Matrix A(m,n), B(m,n), X, Y, X1, Y1;
+   for (int i=0; i<m; i++) for (int j=0; j<n; j++)
+      { A.element(i,j) = mwc.Next(); B.element(i,j) = mwc.Next(); }
+   FFT2(A, B, X, Y);
+   SlowFT2(A, B, X1, Y1);
+   X = X - X1; Y = Y - Y1;
+   Clean(X,0.000000001); Clean(Y,0.000000001); Print(X); Print(Y);
+   FFT2I(X1, Y1, X1, Y1);
+   X1 -= A; Y1 -= B;
+   Clean(X1,0.000000001); Clean(Y1,0.000000001); Print(X1); Print(Y1);   
 }
 
 
@@ -346,7 +363,11 @@ void trymatf()
    // compare DCT, DST and slow versions
    test8(2); test8(26); test8(32); test8(18);
 
+   // compare FFT2 with slow version
+   test9(1,16); test9(16,1);
+   test9(4,3); test9(4,4); test9(4,5); test9(5,3);
 
+   
    // now do the same thing all over again forcing use of old FFT
    FFT_Controller::OnlyOldFFT = true;
 
@@ -396,9 +417,14 @@ void trymatf()
 
    // compare DCT, DST and slow versions
    test8(2); test8(26); test8(32); test8(18);
+   
+   // compare FFT2 with slow version
+   // don't redo these
 
    FFT_Controller::OnlyOldFFT = false;
 
 
 
 }
+
+///@}

@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt2.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -278,10 +284,31 @@ void trymat2()
 
       I.ReSize(3); J.ReSize(3); K = I * J; N = K - I; Print(N);
       K << D; N = K - D; Print(N);
-
-
    }
+   
+   // test add integer
+   {
+      Matrix X(2,3);
+      X << 5.25 << 7.75 << 1.25
+        << 9.00 << 1.00 << 2.50;
+      Matrix Y = X;
+      X = 10 + X;
+      X += (-10);
+      X -= Y;
+      Print(X);
+      
+      // also test f suffix
+      X << 5.25f << 7.75f << 1.25f
+        << 9.00f << 1.00f << 2.50f;
+      X -= Y; Print(X);
+      
+   }
+   
+   
 
 
 //   cout << "\nEnd of second test\n";
 }
+
+
+///@}

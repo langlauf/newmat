@@ -1,3 +1,10 @@
+/// \ingroup newmat
+///@{
+
+/// \file test_exc.cpp
+/// Test some of the exceptions in the matrix library.
+
+
 #define WANT_STREAM
 
 #include "newmatap.h"
@@ -12,6 +19,7 @@ using namespace RBD_LIBRARIES;
 /**************************** test exceptions ******************************/
 
 
+
 int main()
 {
    // activate the next expression if you want to use compiler supported
@@ -21,12 +29,14 @@ int main()
    // Forces cout to allocate memory at beginning
    cout << "\nThis tests the exception system, so you will get\n" <<
       "a long list of error messages\n\n";
-   cout << "\nPrint a real number (may help lost memory test): " << 3.14159265 << "\n";
+   cout << "\nPrint a real number (may help lost memory test): "
+      << 3.14159265 << "\n";
    // Throw exception to set up exception buffer
    Try { Throw(BaseException("Just a dummy\n")); }
    CatchAll {};
-   { Matrix A1(40,200); s1 = A1.Store(); }
-   { Matrix A1(1,1); s3 = A1.Store(); }
+   BaseException::clear();
+   { Matrix A1(40,200); s1 = A1.data(); }
+   { Matrix A1(1,1); s3 = A1.data(); }
    {
       Tracer et("Test");
 
@@ -70,7 +80,7 @@ int main()
 
          cout << "Non 1x1 matrix to scalar\n";
          et.ReName("Block F");
-         Try { Real f = A.AsScalar(); cout << f << endl; }
+         Try { Real f = A.as_scalar(); cout << f << endl; }
          CatchAll { cout << BaseException::what() << endl; }
          cout << "-----------------------------------------\n\n";
 
@@ -123,7 +133,7 @@ int main()
          Try
          {
             Matrix A(10,20); A = 5; Matrix B=A.Rows(6,5);
-            MaximumAbsoluteValue(B);
+            maximum_absolute_value(B);
          }
          CatchAll { cout << BaseException::what() << endl; }
          cout << "-----------------------------------------\n\n";
@@ -133,12 +143,12 @@ int main()
          Try
          {
             BandMatrix A(20,5,3); A = 5; UpperBandMatrix B;
-            B.ReSize(A);
+            B.resize(A);
          }
          CatchAll { cout << BaseException::what() << endl; }
          cout << "-----------------------------------------\n\n";
 
-         cout << "Incorrectly ReSizing symmetric band matrix\n";
+         cout << "Incorrectly resizing symmetric band matrix\n";
          et.ReName("Block M");
          Try
          {
@@ -153,27 +163,50 @@ int main()
          Try
          {
             Matrix A(3,3); A = 0; A(1,1) = A(2,2) = A(3,3) = 1;
-            CroutMatrix B = A;;
-            B.ReSize(A);
+            CroutMatrix B = A;
+            B.resize(A);
          }
          CatchAll { cout << BaseException::what() << endl; }
          cout << "-----------------------------------------\n\n";
+
+         cout << "Manipulate CroutMatrix\n";
+         et.ReName("Block P");
+         Try
+         {
+            Matrix A(3,3); A = 0; A(1,1) = A(2,2) = A(3,3) = 1;
+            CroutMatrix B = A;
+            Matrix C = B;
+         }
+         CatchAll { cout << BaseException::what() << endl; }
+         cout << "-----------------------------------------\n\n";
+
+         cout << "Manipulate BandLUMatrix\n";
+         et.ReName("Block Q");
+         Try
+         {
+            SymmetricBandMatrix A(3,1); A = 0; A(1,1) = A(2,2) = A(3,3) = 1;
+            BandLUMatrix B = A;
+            Matrix C = B;
+         }
+         CatchAll { cout << BaseException::what() << endl; }
+         cout << "-----------------------------------------\n\n";
+
 
       }
       CatchAll { cout << "\nException generated in test program\n\n"; }
    }
 
    cout << "\nEnd test\n";
-   { Matrix A1(40,200); s2 = A1.Store(); }
+   { Matrix A1(40,200); s2 = A1.data(); }
    cout << "\n(The following memory checks are probably not valid with all\n";
    cout << "compilers - see documentation)\n";
-   cout << "\nChecking for lost memory: "
+   cout << "\nChecking for lost memory (large block): "
       << (unsigned long)s1 << " " << (unsigned long)s2 << " ";
-   if (s1 != s2) cout << " - error\n"; else cout << " - ok\n";
-   { Matrix A1(1,1); s4 = A1.Store(); }
-   cout << "\nChecking for lost memory: "
+   if (s1 != s2) cout << " - see section 2.8\n"; else cout << " - ok\n";
+   { Matrix A1(1,1); s4 = A1.data(); }
+   cout << "\nChecking for lost memory (small block): "
       << (unsigned long)s3 << " " << (unsigned long)s4 << " ";
-   if (s3 != s4) cout << " - error\n\n"; else cout << " - ok\n\n";
+   if (s3 != s4) cout << " - see section 2.8\n\n"; else cout << " - ok\n\n";
 
 
 #ifdef DO_FREE_CHECK
@@ -184,3 +217,5 @@ int main()
 
    return 0;
 }
+
+///@}

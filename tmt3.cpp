@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt3.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -158,3 +164,5 @@ void trymat3()
 
 }
 
+
+///@}

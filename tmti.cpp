@@ -1,3 +1,10 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmti.cpp
+/// Part of matrix library test program.
+/// Test exceptions
+
 
 //#define WANT_STREAM
 
@@ -35,6 +42,7 @@ void trymati()
    Try { WillNotConverge(); }
    Catch(ConvergenceException) { checks(2) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
 
    Try { Matrix M(10,10); SymmetricMatrix S = M; }
@@ -42,6 +50,7 @@ void trymati()
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(3) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
 
    Try { Matrix M(10,10); M(10,11) = 2.0; }
@@ -49,6 +58,7 @@ void trymati()
    Catch(InternalException) { checks(1) = 1; }
    Catch(IndexException) { checks(4) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
    Try { Matrix M(10,10); M = 0.0; M = M.i(); }
    Catch(ConvergenceException) { checks(1) = 1; }
@@ -57,12 +67,14 @@ void trymati()
    Catch(SingularException) { checks(5) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { ColumnVector A(30), B(50);  A = 5; B = 3; FFT(A,B,A,B); }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(6) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
    Try
    {
@@ -75,12 +87,14 @@ void trymati()
    Catch(Logic_error) { checks(6) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { BandMatrix X(10,3,4); X(1,10) = 4.0; }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(IndexException) { checks(7) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
    Try
    {
@@ -93,6 +107,7 @@ void trymati()
    Catch(NPDException) { checks(8) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { BandMatrix M(10,3,5); M = 0.0; Matrix XM = M.i(); }
    Catch(ConvergenceException) { checks(1) = 1; }
@@ -101,6 +116,7 @@ void trymati()
    Catch(SingularException) { checks(9) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { ColumnVector X(10); ColumnVector Y; X = 5; X = X - Y; }
    Catch(ConvergenceException) { checks(1) = 1; }
@@ -108,6 +124,7 @@ void trymati()
    Catch(IncompatibleDimensionsException) { checks(10) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try
    {
@@ -119,37 +136,43 @@ void trymati()
    Catch(ProgramException) { checks(11) = 0; }
    Catch(Bad_alloc) { checks(1) = 1; }
    CatchAndThrow;
+   BaseException::clear();
 
-   Try { DiagonalMatrix D(3); D << 12 << 13 << 14 << 15 << "end1"; }
+   Try { DiagonalMatrix D(3); D << 12 << 13 << 14 << 15; }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(12) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
-   Try { ColumnVector D(3); D << 12 << 13 << "end2"; D << 1 << 2 << 3 << "end3"; }
+   Try { ColumnVector D(3); D << 12 << 13; D << 1 << 2 << 3; }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(13) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
 
-   Try {  { ColumnVector D(3); D << 12 << 13 << "end4"; }  }
+   Try {  { ColumnVector D(3); D << 12 << 13; }  }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(14) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { ColumnVector CV; ReSizeMatrix(CV); }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(VectorException) { checks(15) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { RowVector RV(20); ReSizeMatrix(RV); }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(VectorException) { checks(16) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try
    {
@@ -161,18 +184,21 @@ void trymati()
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(17) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { Matrix A(2,3), B(2,3); if (A < B) A = B; }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(NotDefinedException) { checks(18) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { SymmetricBandMatrix A(3,1); A = 1; A = A.Reverse(); }
    Catch(ConvergenceException) { checks(1) = 1; }
    Catch(InternalException) { checks(1) = 1; }
    Catch(NotDefinedException) { checks(19) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try
    {
@@ -182,20 +208,24 @@ void trymati()
    }
    Catch(ProgramException) { checks(20) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
-   Try {  { RowVector D(1); D << 12 << 13 << "end5"; }  }
+   Try {  { RowVector D(1); D << 12 << 13; }  }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(21) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
-   Try {  { RowVector D(0); D << 12 << "end6"; }  }
+   Try {  { RowVector D(0); D << 12; }  }
    Catch(InternalException) { checks(1) = 1; }
    Catch(ProgramException) { checks(22) = 0; }
    CatchAndThrow;
+   BaseException::clear();
 
    Try { Matrix M(10,10); Matrix XM(3,3); M = 0.0; XM = M.i(); }
    Catch(SingularException) { checks(23) = 0; }
    CatchAll { checks(1) = 1; }
+   BaseException::clear();
 
    Print(checks);
    Matrix RUStillThere1(10,20); RUStillThere1 = 1553;
@@ -206,4 +236,5 @@ void trymati()
 }
 
 
+///@}
 

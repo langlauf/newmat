@@ -1,4 +1,12 @@
-//$$ example.cpp                             Example of use of matrix package
+/// \ingroup newmat
+///@{
+
+/// \file example.cpp
+/// Example of use of matrix package.
+/// Carry out a simple regression analysis using a number of different methods
+/// to illustrate matrix manipulation, solving equations,
+/// Cholesky decomposition, QR decomposition, Singular Value decomposition.
+
 
 #define WANT_STREAM                  // include.h will get stream fns
 #define WANT_MATH                    // include.h will get math fns
@@ -26,11 +34,11 @@ void test1(Real* y, Real* x1, Real* x2, int nobs, int npred)
    // make matrix of predictor values with 1s into col 1 of matrix
    int npred1 = npred+1;        // number of cols including col of ones.
    Matrix X(nobs,npred1);
-   X.Column(1) = 1.0;
+   X.column(1) = 1.0;
 
    // load x1 and x2 into X
    //    [use << rather than = when loading arrays]
-   X.Column(2) << x1;  X.Column(3) << x2;
+   X.column(2) << x1;  X.column(3) << x2;
 
    // vector of Y values
    ColumnVector Y(nobs); Y << y;
@@ -47,12 +55,12 @@ void test1(Real* y, Real* x1, Real* x2, int nobs, int npred)
    // Get variances of estimates from diagonal elements of inverse of SSQ
    // get inverse of SSQ - we need it for finding D
    DiagonalMatrix D; D << SSQ.i();
-   ColumnVector V = D.AsColumn();
+   ColumnVector V = D.as_column();
 
    // Calculate fitted values and residuals
    ColumnVector Fitted = X * A;
    ColumnVector Residual = Y - Fitted;
-   Real ResVar = Residual.SumSquare() / (nobs-npred1);
+   Real ResVar = sum_square(Residual) / (nobs-npred1);
 
    // Get diagonals of Hat matrix (an expensive way of doing this)
    DiagonalMatrix Hat;  Hat << X * (X.t() * X).i() * X.t();
@@ -71,7 +79,7 @@ void test1(Real* y, Real* x1, Real* x2, int nobs, int npred)
 
    // use concatenation again; select only columns 2 to 3 of X
    cout << setw(9) << setprecision(3) <<
-     (X.Columns(2,3) | Y | Fitted | Residual | Hat.AsColumn());
+     (X.columns(2,3) | Y | Fitted | Residual | Hat.as_column());
    cout << "\n\n";
 }
 
@@ -88,7 +96,7 @@ void test2(Real* y, Real* x1, Real* x2, int nobs, int npred)
 
    // load x1 and x2 into X
    //    [use << rather than = when loading arrays]
-   X.Column(1) << x1;  X.Column(2) << x2;
+   X.column(1) << x1;  X.column(2) << x2;
 
    // vector of Y values
    ColumnVector Y(nobs); Y << y;
@@ -97,15 +105,15 @@ void test2(Real* y, Real* x1, Real* x2, int nobs, int npred)
    ColumnVector Ones(nobs); Ones = 1.0;
 
    // calculate means (averages) of x1 and x2 [ .t() takes transpose]
-   RowVector M = Ones.t() * X / nobs;
+   RowVector M = X.sum_columns() / nobs;
 
-   // and subtract means from x1 and x1
+   // and subtract means from x1 and x2
    Matrix XC(nobs,npred);
    XC = X - Ones * M;
 
-   // do the same to Y [use Sum to get sum of elements]
+   // do the same to Y [use sum to get sum of elements]
    ColumnVector YC(nobs);
-   Real m = Sum(Y) / nobs;  YC = Y - Ones * m;
+   Real m = sum(Y) / nobs;  YC = Y - Ones * m;
 
    // form sum of squares and product matrix
    //    [use << rather than = for copying Matrix into SymmetricMatrix]
@@ -118,23 +126,23 @@ void test2(Real* y, Real* x1, Real* x2, int nobs, int npred)
 
    // calculate estimate of constant term
    //    [AsScalar converts 1x1 matrix to Real]
-   Real a = m - (M * A).AsScalar();
+   Real a = m - (M * A).as_scalar();
 
    // Get variances of estimates from diagonal elements of inverse of SSQ
    //    [ we are taking inverse of SSQ - we need it for finding D ]
    Matrix ISSQ = SSQ.i(); DiagonalMatrix D; D << ISSQ;
    ColumnVector V = D.AsColumn();
-   Real v = 1.0/nobs + (M * ISSQ * M.t()).AsScalar();
+   Real v = 1.0/nobs + (M * ISSQ * M.t()).as_scalar();
 					    // for calc variance of const
 
    // Calculate fitted values and residuals
    int npred1 = npred+1;
    ColumnVector Fitted = X * A + a;
    ColumnVector Residual = Y - Fitted;
-   Real ResVar = Residual.SumSquare() / (nobs-npred1);
+   Real ResVar = sum_square(Residual) / (nobs-npred1);
 
    // Get diagonals of Hat matrix (an expensive way of doing this)
-   Matrix X1(nobs,npred1); X1.Column(1)<<Ones; X1.Columns(2,npred1)<<X;
+   Matrix X1(nobs,npred1); X1.column(1)<<Ones; X1.columns(2,npred1)<<X;
    DiagonalMatrix Hat;  Hat << X1 * (X1.t() * X1).i() * X1.t();
 
    // print out answers
@@ -150,7 +158,7 @@ void test2(Real* y, Real* x1, Real* x2, int nobs, int npred)
    cout << setw(11) << setprecision(5) << (A | SE) << endl;
    cout << "\nObservations, fitted value, residual value, hat value\n";
    cout << setw(9) << setprecision(3) <<
-     (X | Y | Fitted | Residual | Hat.AsColumn());
+     (X | Y | Fitted | Residual | Hat.as_column());
    cout << "\n\n";
 }
 
@@ -162,14 +170,14 @@ void test3(Real* y, Real* x1, Real* x2, int nobs, int npred)
    // with subtraction of means - using Cholesky decomposition
 
    Matrix X(nobs,npred);
-   X.Column(1) << x1;  X.Column(2) << x2;
+   X.column(1) << x1;  X.column(2) << x2;
    ColumnVector Y(nobs); Y << y;
-   ColumnVector Ones(nobs); Ones = 1.0;
-   RowVector M = Ones.t() * X / nobs;
+   RowVector M = X.sum_columns() / nobs;
    Matrix XC(nobs,npred);
+   ColumnVector Ones(nobs); Ones = 1.0;
    XC = X - Ones * M;
    ColumnVector YC(nobs);
-   Real m = Sum(Y) / nobs;  YC = Y - Ones * m;
+   Real m = sum(Y) / nobs;  YC = Y - Ones * m;
    SymmetricMatrix SSQ; SSQ << XC.t() * XC;
 
    // Cholesky decomposition of SSQ
@@ -183,17 +191,17 @@ void test3(Real* y, Real* x1, Real* x2, int nobs, int npred)
 
    // Get variances of estimates from diagonal elements of invoice of SSQ
    DiagonalMatrix D; D << L.t().i() * L.i();
-   ColumnVector V = D.AsColumn();
-   Real v = 1.0/nobs + (L.i() * M.t()).SumSquare();
+   ColumnVector V = D.as_column();
+   Real v = 1.0/nobs + sum_square(L.i() * M.t());
 
    // Calculate fitted values and residuals
    int npred1 = npred+1;
    ColumnVector Fitted = X * A + a;
    ColumnVector Residual = Y - Fitted;
-   Real ResVar = Residual.SumSquare() / (nobs-npred1);
+   Real ResVar = sum_square(Residual) / (nobs-npred1);
 
    // Get diagonals of Hat matrix (an expensive way of doing this)
-   Matrix X1(nobs,npred1); X1.Column(1)<<Ones; X1.Columns(2,npred1)<<X;
+   Matrix X1(nobs,npred1); X1.column(1)<<Ones; X1.columns(2,npred1)<<X;
    DiagonalMatrix Hat;  Hat << X1 * (X1.t() * X1).i() * X1.t();
 
    // print out answers
@@ -206,7 +214,7 @@ void test3(Real* y, Real* x1, Real* x2, int nobs, int npred)
    cout << setw(11) << setprecision(5) << (A | SE) << endl;
    cout << "\nObservations, fitted value, residual value, hat value\n";
    cout << setw(9) << setprecision(3) <<
-      (X | Y | Fitted | Residual | Hat.AsColumn());
+      (X | Y | Fitted | Residual | Hat.as_column());
    cout << "\n\n";
 }
 
@@ -219,7 +227,7 @@ void test4(Real* y, Real* x1, Real* x2, int nobs, int npred)
    // load data - 1s into col 1 of matrix
    int npred1 = npred+1;
    Matrix X(nobs,npred1); ColumnVector Y(nobs);
-   X.Column(1) = 1.0;  X.Column(2) << x1;  X.Column(3) << x2;  Y << y;
+   X.column(1) = 1.0;  X.column(2) << x1;  X.column(3) << x2;  Y << y;
 
    // do Householder triangularisation
    // no need to deal with constant term separately
@@ -229,7 +237,7 @@ void test4(Real* y, Real* x1, Real* x2, int nobs, int npred)
    QRZ(X1, U); QRZ(X1, Y1, M);    // Y1 now contains resids
    ColumnVector A = U.i() * M;
    ColumnVector Fitted = X * A;
-   Real ResVar = Y1.SumSquare() / (nobs-npred1);
+   Real ResVar = sum_square(Y1) / (nobs-npred1);
 
    // get variances of estimates
    U = U.i(); DiagonalMatrix D; D << U * U.t();
@@ -244,7 +252,7 @@ void test4(Real* y, Real* x1, Real* x2, int nobs, int npred)
    cout << setw(11) << setprecision(5) << (A | SE) << endl;
    cout << "\nObservations, fitted value, residual value, hat value\n";
    cout << setw(9) << setprecision(3) << 
-      (X.Columns(2,3) | Y | Fitted | Y1 | Hat.AsColumn());
+      (X.columns(2,3) | Y | Fitted | Y1 | Hat.as_column());
    cout << "\n\n";
 }
 
@@ -257,7 +265,7 @@ void test5(Real* y, Real* x1, Real* x2, int nobs, int npred)
    // load data - 1s into col 1 of matrix
    int npred1 = npred+1;
    Matrix X(nobs,npred1); ColumnVector Y(nobs);
-   X.Column(1) = 1.0;  X.Column(2) << x1;  X.Column(3) << x2;  Y << y;
+   X.column(1) = 1.0;  X.column(2) << x1;  X.column(3) << x2;  Y << y;
 
    // do SVD
    Matrix U, V; DiagonalMatrix D;
@@ -266,7 +274,7 @@ void test5(Real* y, Real* x1, Real* x2, int nobs, int npred)
    ColumnVector A = V * ( D.i() * Fitted );
    Fitted = U * Fitted;
    ColumnVector Residual = Y - Fitted;
-   Real ResVar = Residual.SumSquare() / (nobs-npred1);
+   Real ResVar = sum_square(Residual) / (nobs-npred1);
 
    // get variances of estimates
    D << V * (D * D).i() * V.t();
@@ -281,7 +289,7 @@ void test5(Real* y, Real* x1, Real* x2, int nobs, int npred)
    cout << setw(11) << setprecision(5) << (A | SE) << endl;
    cout << "\nObservations, fitted value, residual value, hat value\n";
    cout << setw(9) << setprecision(3) << 
-      (X.Columns(2,3) | Y | Fitted | Residual | Hat.AsColumn());
+      (X.columns(2,3) | Y | Fitted | Residual | Hat.as_column());
    cout << "\n\n";
 }
 
@@ -291,24 +299,15 @@ int main()
    cout << "\nPrint a real number (may help lost memory test): " << 3.14159265 << "\n";
 
    // Test for any memory not deallocated after running this program
-   Real* s1; { ColumnVector A(8000); s1 = A.Store(); }
+   Real* s1; { ColumnVector A(8000); s1 = A.data(); }
 
    {
       // the data
 
-#ifndef ATandT
       Real y[]  = { 8.3, 5.5, 8.0, 8.5, 5.7, 4.4, 6.3, 7.9, 9.1 };
       Real x1[] = { 2.4, 1.8, 2.4, 3.0, 2.0, 1.2, 2.0, 2.7, 3.6 };
       Real x2[] = { 1.7, 0.9, 1.6, 1.9, 0.5, 0.6, 1.1, 1.0, 0.5 };
-#else             // for compilers that do not understand aggregrates
-      Real y[9], x1[9], x2[9];
-      y[0]=8.3; y[1]=5.5; y[2]=8.0; y[3]=8.5; y[4]=5.7;
-      y[5]=4.4; y[6]=6.3; y[7]=7.9; y[8]=9.1;
-      x1[0]=2.4; x1[1]=1.8; x1[2]=2.4; x1[3]=3.0; x1[4]=2.0;
-      x1[5]=1.2; x1[6]=2.0; x1[7]=2.7; x1[8]=3.6;
-      x2[0]=1.7; x2[1]=0.9; x2[2]=1.6; x2[3]=1.9; x2[4]=0.5;
-      x2[5]=0.6; x2[6]=1.1; x2[7]=1.0; x2[8]=0.5;
-#endif
+
 
       int nobs = 9;                           // number of observations
       int npred = 2;                          // number of predictor values
@@ -333,13 +332,15 @@ int main()
 #ifdef DO_FREE_CHECK
    FreeCheck::Status();
 #endif
-   Real* s2; { ColumnVector A(8000); s2 = A.Store(); }
+   Real* s2; { ColumnVector A(8000); s2 = A.data(); }
    cout << "\n\nThe following test does not work with all compilers - see documentation\n";
    cout << "Checking for lost memory: "
       << (unsigned long)s1 << " " << (unsigned long)s2 << " ";
-   if (s1 != s2) cout << " - error\n"; else cout << " - ok\n";
+   if (s1 != s2) cout << " - see section 2.8\n"; else cout << " - ok\n";
 
    return 0;
 
 }
 
+
+///@}

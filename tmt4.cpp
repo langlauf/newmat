@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt4.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -22,10 +28,10 @@ void trymat4()
    Tracer et("Fourth test of Matrix package");
    Tracer::PrintTrace();
 
-   int i,j;
 
    {
       Tracer et1("Stage 1");
+      int i, j;
       Matrix M(10,10);
       UpperTriangularMatrix U(10);
       for (i=1;i<=10;i++) for (j=1;j<=10;j++) M(i,j) = 100*i+j;
@@ -54,6 +60,7 @@ void trymat4()
 
    {
       Tracer et1("Stage 2");
+      int i, j;
       Matrix M; Matrix X; M.ReSize(5,8);
       for (i=1;i<=5;i++) for (j=1;j<=8;j++) M(i,j) = 100*i+j;
       {
@@ -77,6 +84,7 @@ void trymat4()
    {
       Tracer et1("Stage 3");
       // try submatrices of zero dimension
+      int i, j;
       Matrix A(4,5); Matrix B, C;
       for (i=1; i<=4; i++) for (j=1; j<=5; j++)
          A(i,j) = 100+i*10+j;
@@ -149,7 +157,97 @@ void trymat4()
       D1(1) = 18; D1(2) = 23; D1(3) = 31; D1(4) = 17;
       D1 -= D; Print(D1);
    }
+   
+   {
+      Tracer et1("Stage 8");
+      // test swap functions
+      MultWithCarry MWC;
+      Matrix A(3,4); Matrix B(5,6);
+      FillWithValues(MWC, A); FillWithValues(MWC, B);
+      Matrix A1 = A; Matrix B1 = B; A.Release(); B.Release(2);
+      swap(A, B);
+      int a = A.size() - B1.size(), b = B.size() - A1.size();
+      Matrix D = A - B1; Print(D);
+      D = B - A1; Print(D);
+      Print(B);   // should be zero because of release
+      D = A - B1; Print(D);
+      Print(A);   // now should be zero
+      D.ReSize(1,2); D(1,1) = a; D(1,2) = b; Print(D);
+      
+      A.ReSize(20,20); FillWithValues(MWC, A);
+     
+      UpperTriangularMatrix UA; UA << A; UpperTriangularMatrix UA1 = UA;
+      UpperTriangularMatrix UB;
+      swap(UA, UB); Print(UA); UB -= UA1; Print(UB);
+      
+      LowerTriangularMatrix LA; LA << A; LowerTriangularMatrix LA1 = LA;
+      LowerTriangularMatrix LB;
+      swap(LB, LA); Print(LA); LB -= LA1; Print(LB);
+
+      SymmetricMatrix SA; SA << A; SymmetricMatrix SA1 = SA;
+      SymmetricMatrix SB;
+      swap(SA, SB); Print(SA); SB -= SA1; Print(SB);
+      
+      DiagonalMatrix DA; DA << A; DiagonalMatrix DA1 = DA;
+      DiagonalMatrix DB;
+      swap(DB, DA); Print(DA); DB -= DA1; Print(DB);
+      
+      RowVector RVA = A.Row(1); RowVector RVA1 = RVA;
+      RowVector RVB;
+      swap(RVB, RVA); Print(RVA); RVB -= RVA1; Print(RVB);
+      
+      ColumnVector CVA = A.Column(1); ColumnVector CVA1 = CVA;
+      ColumnVector CVB;
+      swap(CVA, CVB); Print(CVA); CVB -= CVA1; Print(CVB);
+      
+      BandMatrix BA(20, 7, 4); BA.Inject(A); BandMatrix BA1 = BA;
+      BandMatrix BB;
+      swap(BA, BB); D = BA; Print(D); BB -= BA1; D = BB; Print(D);
+      
+      LowerBandMatrix LBA(20, 6); LBA.Inject(A); LowerBandMatrix LBA1 = LBA;
+      LowerBandMatrix LBB;
+      swap(LBB, LBA); D = LBA; Print(D); LBB -= LBA1; D = LBB; Print(D);
+      
+      UpperBandMatrix UBA(20, 9); UBA.Inject(A); UpperBandMatrix UBA1 = UBA;
+      UpperBandMatrix UBB;
+      swap(UBA, UBB); D = UBA; Print(D); UBB -= UBA1; D = UBB; Print(D);
+      
+      SymmetricBandMatrix SBA(20, 4); SBA.Inject(A);
+      SymmetricBandMatrix SBA1 = SBA;
+      SymmetricBandMatrix SBB;
+      
+      swap(SBB, SBA); D = SBA; Print(D);
+      SBB -= SBA1; D = SBB; Print(D);
+      
+      B.ReSize(10,10); FillWithValues(MWC, B);
+      
+      CroutMatrix CA = A; IdentityMatrix IA(20);
+      CroutMatrix CB = B; IdentityMatrix IB(10);
+      swap(CA, CB); swap(IA, IB);
+      D = CA.i() * B - IA; Clean(D,0.00000001); Print(D);
+      D = CB.i() * A - IB; Clean(D,0.00000001); Print(D);
+      
+      BA.ReSize(20, 5, 7); BA.Inject(A); BandLUMatrix BLUA = BA;
+      BB.ReSize(10, 3, 4); BB.Inject(B); BandLUMatrix BLUB = BB;
+      swap(BLUA, BLUB);
+      D = BLUA.i() * BB - IA; Clean(D,0.00000001); Print(D);
+      D = BLUB.i() * BA - IB; Clean(D,0.00000001); Print(D);
+
+      
+      SBA.ReSize(20, 5); SBA.Inject(A); BandLUMatrix SBLUA = SBA;
+      SBB.ReSize(10, 3); SBB.Inject(B); BandLUMatrix SBLUB = SBB;
+      swap(SBLUA, SBLUB);
+      D = SBLUA.i() * SBB - IA; Clean(D,0.00000001); Print(D);
+      D = SBLUB.i() * SBA - IB; Clean(D,0.00000001); Print(D);
+      
+      UA << A;
+      GenericMatrix GUA = UA; GenericMatrix GB = B; swap(GUA, GB);
+      D = GB - UA; Print(D); D = B - GUA; Print(D);
+      
+   }
 
 //   cout << "\nEnd of fourth test\n";
 }
 
+
+///@}

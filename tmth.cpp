@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmth.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -427,22 +433,8 @@ void trymath()
       V = V / 64 - 1; Clean(V,0.000000001); Print(V);
       ColumnVector X(7);
 
-#ifdef ATandT
-      Real a[7];
-      // the previous statement causes a core dump in tmti.cpp
-      // on the HP9000 - seems very strange. Possibly the exception
-      // mechanism is failing to track the stack correctly. If you get
-      // this problem replace by the following statement.
-//      Real* a = new Real [7]; if (!a) exit(1);
-      a[0]=1; a[1]=2; a[2]=3; a[3]=4; a[4]=5; a[5]=6; a[6]=7;
-#else
       Real a[] = {1,2,3,4,5,6,7};
-#endif
       X << a;
-// include these if you are using the previous dynamic definition of a
-//#ifdef ATandT
-//      delete [] a;
-//#endif
       M = (M.i()*X).t() - (B.i()*X).t() * 2.0 + (A.i()*X).t();
       Clean(M,0.000000001); Print(M);
 
@@ -523,11 +515,7 @@ void trymath()
       X(8) = Sum(M) - Sum(A);
       Clean(X,0.000000001); Print(X);
 
-#ifdef ATandT
-      Real a[7]; a[0]=1; a[1]=2; a[2]=3; a[3]=4; a[4]=5; a[5]=6; a[6]=7;
-#else
       Real a[] = {1,2,3,4,5,6,7};
-#endif
       X.ReSize(7);
       X << a;
       X = M.i()*X - C.i()*X * 2 + A.i()*X;
@@ -778,7 +766,84 @@ void trymath()
       RV(2) = BM.BandWidth().Upper();
       Print(RV);
    }
+   
+   {
+      // Helmert multiplies
+      Tracer et1("Stage 9");
+      MultWithCarry MCW;
+      int i, j;
+
+      IdentityMatrix I(8);
+      Matrix X = I;
+      Matrix Y = Helmert_transpose(X);
+      Matrix H = Helmert(9); H -= Y.t(); Clean(H,0.000000001); Print(H);
+      Matrix Z = Helmert(Y) - I;
+      Clean(Z,0.000000001); Print(Z);
+      
+      Matrix A(9, 8);
+      for (i = 1; i <= 9; ++i) for (j = 1; j <= 8; ++j)
+         A(i, j) = Helmert_transpose(X.column(j), i);
+      A -= Y; Clean(A,0.000000001); Print(A); 
+   
+      X = I;
+      Y = Helmert_transpose(X, true);
+      H = Helmert(8, true); H -= Y.t(); Clean(H,0.000000001); Print(H);
+      Z = Helmert(Y, true) - I;
+      Clean(Z,0.000000001); Print(Z);
+      
+      A.resize(8, 8);
+      for (i = 1; i <= 8; ++i) for (j = 1; j <= 8; ++j)
+         A(i, j) = Helmert_transpose(X.column(j), i, true);
+      A -= Y; Clean(A,0.000000001); Print(A); 
+
+
+
+      I.ReSize(9);
+      X = I;
+      Y = Helmert(X, true);
+      H = Helmert(9, true); H -= Y; Clean(H,0.000000001); Print(H);
+      Z = Helmert_transpose(Y, true) - I;
+      Clean(Z,0.000000001); Print(Z);
+   
+      A.ReSize(9, 9);
+      for (i = 1; i <= 9; ++i) A.Column(i) = Helmert(9, i, true);
+      A -= Y; Clean(A,0.000000001); Print(A);
+
+      Y = Helmert(X);
+      A.ReSize(8, 9);
+      for (i = 1; i <= 9; ++i) A.Column(i) = Helmert(9, i);
+      A -= Y; Clean(A,0.000000001); Print(A);
+      
+      ColumnVector Twos(100); Twos = 2;
+      ColumnVector CV = Helmert(Twos); Clean(CV,0.000000001); Print(CV);
+      
+      X.resize(25,30);
+      FillWithValues(MCW, X);
+      Y = Helmert(X);
+      Z = Helmert(X,true).rows(1,24) - Y;
+      Clean(Z,0.000000001); Print(Z);
+      Z = Helmert(X,true).row(25) - X.sum_columns() / 5.0;
+      Clean(Z,0.000000001); Print(Z);
+      
+      I.resize(15);
+      X = I;
+      Z = Helmert_transpose(X, true) - Helmert(X, true).t();
+      Clean(Z,0.000000001); Print(Z);
+      I.resize(14); Y = I;
+      Z = Helmert(X) - Helmert_transpose(Y).t();
+      Clean(Z,0.000000001); Print(Z);
+      
+      
+      
+   }
+      
+      
+      
+      
+      
 
 //   cout << "\nEnd of Seventeenth test\n";
 }
 
+
+///*}

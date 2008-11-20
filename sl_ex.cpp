@@ -1,7 +1,12 @@
-// This is an example of the use of solution to find the cube root of 
-// the integers -10 to 10
+/// \ingroup newmat
+///@{
 
-// you will need to compile and link solution.cpp and except.cpp
+/// \file sl_ex.cpp
+/// Test one-dimensional solve function.
+/// This is an example of the use of solution to find the cube root of 
+/// the integers -10 to 10
+///
+/// you will need to compile and link solution.cpp and my_except.cpp
 
 #define WANT_STREAM
 #define WANT_MATH
@@ -19,7 +24,8 @@ using namespace RBD_LIBRARIES;
 class Cube : public R1_R1
 { Real operator()() { return x*x*x; } };
 
-int main()
+
+int my_main()
 {
    // construct the Cube object
    Cube cube;
@@ -31,3 +37,23 @@ int main()
    return 0;
 }
 
+// call my_main() - use this to catch exceptions
+int main()
+{
+   Try
+   {
+      return my_main();
+   }
+   Catch(BaseException)
+   {
+      cout << BaseException::what() << "\n";
+   }
+   CatchAll
+   {
+      cout << "\nProgram fails - exception generated\n\n"; 
+   }
+   return 0;
+}
+
+
+///@}

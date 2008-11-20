@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt8.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -139,6 +145,26 @@ void trymat8()
       M.ReSize(MX);
       DCR( D.nric(), C.nric(), 5, R.nric(), 9, M.nric() );
       M -= MX;  Print(M);
+      
+      // test swap
+      nricMatrix A(3,4); nricMatrix B(4,5);
+      A.Row(1) << 2 << 7 << 3 << 6;
+      A.Row(2) << 6 << 2 << 5 << 9;
+      A.Row(3) << 1 << 0 << 1 << 6;
+      B.Row(1) << 2 << 8 << 4 << 5 << 3;
+      B.Row(2) << 1 << 7 << 5 << 3 << 9;
+      B.Row(3) << 7 << 8 << 2 << 1 << 6;
+      B.Row(4) << 5 << 2 << 9 << 0 << 9;
+      nricMatrix A1(1,2); nricMatrix B1;
+      nricMatrix X(3,5); Matrix X1 = A * B;
+      swap(A, A1); swap(B1, B);
+      for (int i = 1; i <= 3; ++i) for (int j = 1; j <= 5; ++j)
+      {
+         X.nric()[i][j] = 0.0;
+         for (int k = 1; k <= 4; ++k)
+            X.nric()[i][j] += A1.nric()[i][k] * B1.nric()[k][j];
+      }
+      X1 -= X; Print(X1); 
    }
 #endif
    {
@@ -266,3 +292,7 @@ void trymat8()
 
 //   cout << "\nEnd of eighth test\n";
 }
+
+
+
+///@}

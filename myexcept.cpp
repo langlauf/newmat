@@ -231,12 +231,6 @@ void Terminate()
    exit(1);
 }
 
-void Exit(const char* c)
-{
-    cout << "\n\nExit called\n";
-    cout << c << "\n";
-    exit(1);
-}
 
 
 #ifdef DO_FREE_CHECK

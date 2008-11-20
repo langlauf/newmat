@@ -120,4 +120,4 @@ Observations, fitted value, residual value, hat value
 
 
 The following test does not work with all compilers - see documentation
-Checking for lost memory: 8206652 8206652  - ok
+Checking for lost memory: 9190840 9190840  - ok

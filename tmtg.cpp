@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtg.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -152,3 +158,6 @@ void trymatg()
 
 //   cout << "\nEnd of Sixteenth test\n";
 }
+
+
+///@}

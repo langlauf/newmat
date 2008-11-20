@@ -1,4 +1,11 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt.cpp
+/// Main file for matrix library test program.
+
 #define WANT_STREAM
+#define WANT_TIME
 
 #include "include.h"
 
@@ -20,15 +27,15 @@ class PrintCounter
    int count;
    const char* s;
 public:
-   ~PrintCounter();
    PrintCounter(const char * sx) : count(0), s(sx) {}
    void operator++() { count++; }
+   void report();
 };
 
 PrintCounter PCZ("Number of non-zero matrices (should be 1) = ");
 PrintCounter PCN("Number of matrices tested                 = ");
 
-PrintCounter::~PrintCounter()
+void PrintCounter::report()
 { cout << s << count << "\n"; }
 
 
@@ -143,11 +150,86 @@ void PentiumCheck(Real N, Real D)
       cout << "Pentium error detected: % error = " << 100 * R / N << "\n";
 }
 
+// random number generator class
+// See newran03 documentation for details
+
+MultWithCarry::MultWithCarry(double s)
+{
+   if (s>=1.0 || s<=0.0)
+      Throw(Logic_error("MultWithCarry: seed out of range"));
+   x = (unsigned long)(s * 4294967296.0);
+   crry = 1234567;
+}
+
+
+// carry out 32bit * 32bit multiply in software
+
+void MultWithCarry::NextValue()
+{
+   unsigned long  mult = 2083801278;
+   unsigned long  m_hi = mult >> 16;
+   unsigned long  m_lo = mult & 0xFFFF;
+
+   unsigned long  x_hi = x >> 16;
+   unsigned long  x_lo = x & 0xFFFF;
+
+   unsigned long  c_hi = crry >> 16;
+   unsigned long  c_lo = crry & 0xFFFF;
+
+   x = x_lo * m_lo + c_lo;
+   unsigned long axc = x_lo * m_hi + x_hi * m_lo + c_hi + (x >> 16);
+   crry = x_hi * m_hi + (axc >> 16);
+
+   x = (x & 0xFFFF) + ((axc << 16) & 0xFFFFFFFF);
+
+}
+
+Real MultWithCarry::Next() { NextValue(); return ((double)x + 0.5) / 4294967296.0; }
+
+// fill a matrix with values from the MultWithCarry random number generator
+void FillWithValues(MultWithCarry&MWC, Matrix& M)
+{
+   int nr = M.nrows();
+   int nc = M.ncols();
+   for (int i = 1; i <= nr; ++i) for (int j = 1; j <= nc; ++ j)
+   M(i, j) = MWC.Next();
+}
+   
+void FillWithValues(MultWithCarry&MWC, UpperTriangularMatrix& M)
+{
+   int nr = M.nrows();
+   for (int i = 1; i <= nr; ++i) for (int j = i; j <= nr; ++ j)
+   M(i, j) = MWC.Next();
+}
+   
+void FillWithValues(MultWithCarry&MWC, LowerTriangularMatrix& M)
+{
+   int nr = M.nrows();
+   for (int i = 1; i <= nr; ++i) for (int j = 1; j <= i; ++ j)
+   M(i, j) = MWC.Next();
+}
+   
+void FillWithValues(MultWithCarry&MWC, DiagonalMatrix& M)
+{
+   int nr = M.nrows();
+   for (int i = 1; i <= nr; ++i)
+   M(i) = MWC.Next();
+}
+
+void FillWithValues(MultWithCarry&MWC, SymmetricMatrix& M)
+{
+   int nr = M.nrows();
+   for (int i = 1; i <= nr; ++i) for (int j = 1; j <= i; ++ j)
+   M(i, j) = MWC.Next();
+}
+   
+   
 
 #ifdef use_namespace
 }
 using namespace NEWMAT;
 #endif
+
 
 //*************************** main program **********************************
 
@@ -161,6 +243,7 @@ void TestTypeOrder();                          // test >=
 
 int main()
 {
+   time_lapse tl;      // measure program run time
    Real* s1; Real* s2; Real* s3; Real* s4;
    cout << "\nBegin test\n";   // Forces cout to allocate memory at beginning
    cout << "Now print a real number: " << 3.14159265 << endl;
@@ -168,6 +251,7 @@ int main()
 #ifndef DisableExceptions
    Try { Throw(BaseException("Just a dummy\n")); }
    CatchAll {}
+   BaseException::clear();
 #else
    cout << "Not doing exceptions\n";
 #endif
@@ -180,16 +264,14 @@ int main()
       {
          int i;
          RowVector A(8);
-         for (i=1;i<=7;i++) A(i)=0.0;
-         A(8)=1.0;
+         for (i=1;i<=7;i++) A(i)=0.0; A(8)=1.0;
          Print(A);
       }
       cout << "\n";
 
       TestTypeAdd(); TestTypeMult(); TestTypeConcat();
       TestTypeSP(); TestTypeKP(); TestTypeOrder();
-
-
+      
       Try { 
          trymat1();
          trymat2();
@@ -228,13 +310,13 @@ int main()
    { Matrix A1(40,200); s2 = A1.Store(); }
    cout << "\n(The following memory checks are probably not valid with all\n";
    cout << "compilers - see documentation)\n";
-   cout << "\nChecking for lost memory: "
+   cout << "\nChecking for lost memory (large block): "
       << (unsigned long)s1 << " " << (unsigned long)s2 << " ";
-   if (s1 != s2) cout << " - error\n"; else cout << " - ok\n";
+   if (s1 != s2) cout << " - see section 2.8\n\n"; else cout << " - ok\n\n";
    { Matrix A1(1,1); s4 = A1.Store(); }
-   cout << "\nChecking for lost memory: "
+   cout << "\nChecking for lost memory (small block): "
       << (unsigned long)s3 << " " << (unsigned long)s4 << " ";
-   if (s3 != s4) cout << " - error\n\n"; else cout << " - ok\n\n";
+   if (s3 != s4) cout << " - see section 2.8\n\n"; else cout << " - ok\n\n";
 
    // check for Pentium bug
    PentiumCheck(4195835L,3145727L);
@@ -243,6 +325,12 @@ int main()
 #ifdef DO_FREE_CHECK
    FreeCheck::Status();
 #endif
+
+   // print matrix print count
+   PCN.report();
+   PCZ.report();
+   cout << endl;
+
    return 0;
 }
 
@@ -258,17 +346,20 @@ int main()
 
 void TestTypeAdd()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << "+     ";
    int i;
@@ -286,17 +377,20 @@ void TestTypeAdd()
 
 void TestTypeMult()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << "*     ";
    int i;
@@ -315,17 +409,20 @@ void TestTypeMult()
 
 void TestTypeConcat()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << "|     ";
    int i;
@@ -344,17 +441,20 @@ void TestTypeConcat()
 
 void TestTypeSP()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << "SP    ";
    int i;
@@ -373,17 +473,20 @@ void TestTypeSP()
 
 void TestTypeKP()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << "KP    ";
    int i;
@@ -402,17 +505,20 @@ void TestTypeKP()
 
 void TestTypeOrder()
 {
-   MatrixType list[10];
+   MatrixType list[13];
    list[0] = MatrixType::UT;
    list[1] = MatrixType::LT;
    list[2] = MatrixType::Rt;
-   list[3] = MatrixType::Sm;
-   list[4] = MatrixType::Dg;
-   list[5] = MatrixType::BM;
-   list[6] = MatrixType::UB;
-   list[7] = MatrixType::LB;
-   list[8] = MatrixType::SB;
-   list[9] = MatrixType::Id;
+   list[3] = MatrixType::Sq;
+   list[4] = MatrixType::Sm;
+   list[5] = MatrixType::Sk;
+   list[6] = MatrixType::Dg;
+   list[7] = MatrixType::Id;
+   list[8] = MatrixType::BM;
+   list[9] = MatrixType::UB;
+   list[10] = MatrixType::LB;
+   list[11] = MatrixType::SB;
+   list[12] = MatrixType::KB;
 
    cout << ">=    ";
    int i;
@@ -428,5 +534,26 @@ void TestTypeOrder()
    }
    cout << "\n";
 }
+
+
+//************** elapsed time class ****************
+
+time_lapse::time_lapse()
+{
+   start_time = ((double)clock())/(double)CLOCKS_PER_SEC;
+}
+
+time_lapse::~time_lapse()
+{
+   double time = ((double)clock())/(double)CLOCKS_PER_SEC - start_time;
+   cout << "Elapsed (processor) time = " << setprecision(2) << time << " seconds" << endl;
+   cout << endl;
+}
+
+
+
+
+///@}
+
 
 

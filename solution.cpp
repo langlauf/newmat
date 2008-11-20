@@ -1,4 +1,8 @@
-//$$ solution.cpp                    // solve routines
+/// \ingroup newmat
+///@{
+
+/// \file solution.cpp
+/// One dimensional solve routine.
 
 // Copyright (C) 1994: R B Davies
 
@@ -7,7 +11,6 @@
 #define WANT_MATH                    // include.h will get math fns
 
 #include "include.h"
-#include "boolean.h"
 #include "myexcept.h"
 
 #include "solution.h"
@@ -39,7 +42,7 @@ SolutionException::SolutionException(const char* a_what) : BaseException()
    AddMessage("Error detected by solution package\n");
    AddMessage(a_what); AddMessage("\n");
    if (a_what) Tracer::AddTrace();
-};
+}
 
 inline Real square(Real x) { return x*x; }
 
@@ -98,7 +101,7 @@ Real OneDimSolve::Solve(Real Y, Real X, Real Dev, int Lim)
    enum Loop { start, captured1, captured2, binary, finish };
    Tracer et("OneDimSolve::Solve");
    lim=Lim; Captured = false;
-   if (Dev==0.0) Throw(SolutionException("Dev is zero"));
+   if ( Dev == 0.0 ) Throw(SolutionException("Dev is zero"));
    L=0; C=1; U=2; vpol=1; hpol=1; y[C]=0.0; y[U]=0.0;
    if (Dev<0.0) { hpol=-1; Dev = -Dev; }
    YY=Y;                                // target value
@@ -198,3 +201,5 @@ bool R1_R1::IsValid(Real X)
 }
 #endif
 
+
+///@}

@@ -1,9 +1,15 @@
-// This is an example of a non-linear least squares fit. The example
-// is from "Nonlinear estimation" by Gavin Ross (Springer,1990), p 63.
-// There are better ways of doing the fit in this case so this
-// example is just an example.
+/// \ingroup newmat
+///@{
 
-// The model is E(y) = a + b exp(-kx) and there are 6 data points.
+/// \file nl_ex.cpp
+/// Example of non-linear least squares fit.
+///
+/// This is an example of a non-linear least squares fit. The example
+/// is from "Nonlinear estimation" by Gavin Ross (Springer,1990), p 63.
+/// There are better ways of doing the fit in this case so this
+/// example is just an example.
+///
+/// The model is E(y) = a + b exp(-kx) and there are 6 data points.
 
 #define WANT_STREAM
 #define WANT_MATH
@@ -23,7 +29,7 @@ class Model_3pe : public R1_Col_I_D
    RowVector deriv;               // values of derivatives
 public:
    Model_3pe(const ColumnVector& X_Values)
-      : x_values(X_Values) { deriv.ReSize(3); }
+      : x_values(X_Values) { deriv.resize(3); }
 											 // load X data
    Real operator()(int);
    bool IsValid() { return para(3)>0; }
@@ -42,7 +48,8 @@ Real Model_3pe::operator()(int i)
    return a + b * e;                  // function value
 }
 
-int main()
+
+int my_main()
 {
    {
       // Get the data
@@ -78,10 +85,10 @@ int main()
       DiagonalMatrix Hat;
       NLLS.GetHatDiagonal(Hat);
       cout << "\nX, Y, Residual, Hat\n" << setw(10) << setprecision(2) <<
-         (X | Y | Residuals | Hat.AsColumn()) << endl;
+         (X | Y | Residuals | Hat.as_column()) << endl;
       // recover var/cov matrix
       SymmetricMatrix D;
-      D << SE.AsDiagonal() * Correlations * SE.AsDiagonal();
+      D << SE.as_diagonal() * Correlations * SE.as_diagonal();
       cout << "\nVar/cov\n" << setw(14) << setprecision(4) << D << endl;
    }
 
@@ -91,3 +98,28 @@ int main()
  
    return 0;
 }
+
+
+// call my_main() - use this to catch exceptions
+int main()
+{
+   Try
+   {
+      return my_main();
+   }
+   Catch(BaseException)
+   {
+      cout << BaseException::what() << "\n";
+   }
+   CatchAll
+   {
+      cout << "\nProgram fails - exception generated\n\n"; 
+   }
+   return 0;
+}
+
+
+///@}
+
+
+

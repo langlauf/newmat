@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtb.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -150,3 +156,7 @@ void trymatb()
 
 //   cout << "\nEnd of eleventh test\n";
 }
+
+
+
+///@}

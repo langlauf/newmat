@@ -1,3 +1,20 @@
+/// \ingroup newmat
+///@{
+
+/// \file garch.cpp
+/// example: fit simple garch model.
+/// This is a demonstration of a special case of the Garch model
+/// Observe two series X and Y of length n
+/// and suppose
+///    Y(i) = beta * X(i) + epsilon(i)
+/// where epsilon(i) is normally distributed with zero mean and variance =
+///    h(i) = alpha0 + alpha1 * square(epsilon(i-1)) + beta1 * h(i-1).
+/// Then this program is supposed to estimate beta, alpha0, alpha1, beta1
+/// The Garch model is supposed to model something like an instability
+/// in the stock or options market following an unexpected result.
+/// alpha1 determines the size of the instability and beta1 determines how
+/// quickly is dies away.
+/// We should, at least, have an X of several columns and beta as a vector
 
 #define WANT_STREAM
 #define WANT_MATH
@@ -11,18 +28,6 @@
 using namespace RBD_LIBRARIES;
 #endif
 
-// This is a demonstration of a special case of the Garch model
-// Observe two series X and Y of length n
-// and suppose
-//    Y(i) = beta * X(i) + epsilon(i)
-// where epsilon(i) is normally distributed with zero mean and variance =
-//    h(i) = alpha0 + alpha1 * square(epsilon(i-1)) + beta1 * h(i-1).
-// Then this program is supposed to estimate beta, alpha0, alpha1, beta1
-// The Garch model is supposed to model something like an instability
-// in the stock or options market following an unexpected result.
-// alpha1 determines the size of the instability and beta1 determines how
-// quickly is dies away.
-// We should, at least, have an X of several columns and beta as a vector
 
 inline Real square(Real x) { return x*x; }
 
@@ -41,7 +46,7 @@ class GARCH11_LL : public LL_D_FI
 public:
 
    GARCH11_LL(const ColumnVector& y, const ColumnVector& x)
-      : Y(y), X(x), n(y.Nrows()) {}
+      : Y(y), X(x), n(y.nrows()) {}
                                    // constructor - load Y and X values
 
    void Set(const ColumnVector& p) // set parameter values
@@ -115,8 +120,8 @@ Real GARCH11_LL::LogLikelihood()
    // do minus expected value of second derivatives
    if (wg)                    // do only if second derivatives wanted
    {
-      Hderiv.Row(1) = 0.0;
-      Hderiv = H.AsDiagonal().i() * Hderiv;
+      Hderiv.row(1) = 0.0;
+      Hderiv = H.as_diagonal().i() * Hderiv;
       D2 << Hderiv.t() * Hderiv;  D2 = D2 / 2.0;
       D2(1,1) += sum2;
 //      cout << setw(10) << setprecision(5) << D2 << endl;
@@ -137,8 +142,7 @@ ReturnMatrix GARCH11_LL::FI()
 }
 
 
-
-int main()
+int my_main()
 {
    // get data
    ifstream fin("garch.dat");
@@ -172,4 +176,23 @@ int main()
 }
 
 
+// call my_main() - use this to catch exceptions
+int main()
+{
+   Try
+   {
+      return my_main();
+   }
+   Catch(BaseException)
+   {
+      cout << BaseException::what() << "\n";
+   }
+   CatchAll
+   {
+      cout << "\nProgram fails - exception generated\n\n"; 
+   }
+   return 0;
+}
 
+
+///@}

@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmte.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 #define WANT_MATH
@@ -34,27 +40,36 @@ void trymate()
       Tracer et1("Stage 1");
       Matrix A(8,5);
       {
-#ifndef ATandT
          Real   a[] = { 22, 10,  2,  3,  7,
                         14,  7, 10,  0,  8,
                         -1, 13, -1,-11,  3,
-		        -3, -2, 13, -2,  4,
+                        -3, -2, 13, -2,  4,
                          9,  8,  1, -2,  4,
                          9,  1, -7,  5, -1,
                          2, -6,  6,  5,  1,
                          4,  5,  0, -2,  2 };
-#else
-         Real a[40];
-         a[ 0]=22; a[ 1]=10; a[ 2]= 2; a[ 3]= 3; a[ 4]= 7;
-         a[ 5]=14; a[ 6]= 7; a[ 7]=10; a[ 8]= 0; a[ 9]= 8;
-         a[10]=-1; a[11]=13; a[12]=-1; a[13]=-11;a[14]= 3;
-         a[15]=-3; a[16]=-2; a[17]=13; a[18]=-2; a[19]= 4;
-         a[20]= 9; a[21]= 8; a[22]= 1; a[23]=-2; a[24]= 4;
-         a[25]= 9; a[26]= 1; a[27]=-7; a[28]= 5; a[29]=-1;
-         a[30]= 2; a[31]=-6; a[32]= 6; a[33]= 5; a[34]= 1;
-         a[35]= 4; a[36]= 5; a[37]= 0; a[38]=-2; a[39]= 2;
-#endif
+         int   ai[] = { 22, 10,  2,  3,  7,
+                        14,  7, 10,  0,  8,
+                        -1, 13, -1,-11,  3,
+                        -3, -2, 13, -2,  4,
+                         9,  8,  1, -2,  4,
+                         9,  1, -7,  5, -1,
+                         2, -6,  6,  5,  1,
+                         4,  5,  0, -2,  2 };
          A << a;
+
+         Matrix AI(8,5);
+         AI << ai; AI -= A; Print(AI);
+         int b[] = { 13, -1,-11,
+                     -2, 13, -2,
+                      8,  1, -2,
+                      1, -7,  5 };
+         Matrix B(8, 5); B = 23;
+         B.SubMatrix(3,6,2,4) << b;
+         AI = A;
+         AI.Rows(1,2) = 23; AI.Rows(7,8) = 23;
+         AI.Column(1) = 23; AI.Column(5) = 23;
+         AI -= B; Print(AI);
       }
       DiagonalMatrix D; Matrix U; Matrix V;
       int anc = A.Ncols(); IdentityMatrix I(anc);
@@ -127,11 +142,7 @@ void trymate()
       SymmetricMatrix S1; S1 << A.t() * A;
       SymmetricMatrix S2; S2 << A * A.t();
       DiagonalMatrix D; Matrix U; Matrix V;
-#ifdef ATandT
-      int anc = A.Ncols(); DiagonalMatrix I(anc);     // AT&T 2.1 bug
-#else
       DiagonalMatrix I(A.Ncols());
-#endif
       I=1.0;
       SVD(A,D,U,V); CheckIsSorted(D);
       Matrix SU = U.t() * U - I;    Clean(SU,0.000000001); Print(SU);
@@ -175,11 +186,7 @@ void trymate()
       { if (i>j) A(i,j) = 0; else if (i==j) A(i,j) = 1; else A(i,j) = -1; }
       Real d1 = A.LogDeterminant().Value();
       DiagonalMatrix D; Matrix U; Matrix V;
-#ifdef ATandT
-      int anc = A.Ncols(); DiagonalMatrix I(anc);     // AT&T 2.1 bug
-#else
       DiagonalMatrix I(A.Ncols());
-#endif
       I=1.0;
       SVD(A,D,U,V); CheckIsSorted(D);
       Matrix SU = U.t() * U - I; Clean(SU,0.000000001); Print(SU);
@@ -478,6 +485,29 @@ void trymate()
       Clean(A, 0.000000001); Print(A);
    }
 
+   {
+      Tracer et1("Stage 10");
+      // 2x2 evalue test
+      SymmetricMatrix A(2); DiagonalMatrix D; Matrix V;
+      Real a[] = {0.616556, 0.61544, 0.716556};
+      A << a;
+      EigenValues(A,D,V);
+      Matrix X = V * D * V.t() - A;
+      Clean(X, 0.000000001); Print(X);
+      Matrix Y = V * V.t() - IdentityMatrix(2);
+      Clean(Y, 0.000000001); Print(Y);
+      D.cleanup(); V.cleanup();
+      Jacobi(A,D,V);
+      X = V * D * V.t() - A;
+      Clean(X, 0.000000001); Print(X);
+      Y = V * V.t() - IdentityMatrix(2);
+      Clean(Y, 0.000000001); Print(Y);
+            
+   }
+
 
 
 }
+
+
+///@}

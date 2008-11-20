@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtj.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -103,7 +109,7 @@ void trymatj()
       X = SP(BA,BB*17)-BC*17; Print(X);
       X = SP(BA/4,BB*7)-BC*7/4; Print(X);
       BX = SP(BA,BB);
-      BW(1)=BX.upper-7; BW(2)=BX.lower-8; Print(BW);
+      BW(1)=BX.upper_val-7; BW(2)=BX.lower_val-8; Print(BW);
 
       BA.ReSize(19,7,10); BB.ReSize(19,15,8);
       BC.ReSize(19,7,8);
@@ -118,7 +124,7 @@ void trymatj()
       X = SP(BA,BB*17)-BC*17; Print(X);
       X = SP(BA/4,BB*7)-BC*7/4; Print(X);
       BX = SP(BA,BB);
-      BW(1)=BX.upper-8; BW(2)=BX.lower-7; Print(BW);
+      BW(1)=BX.upper_val-8; BW(2)=BX.lower_val-7; Print(BW);
    }
    {
       // SymmetricBandMatrices
@@ -150,3 +156,4 @@ void trymatj()
 }
 
 
+///@}

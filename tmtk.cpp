@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtk.cpp
+/// Part of matrix library test program.
+
 
 #define WANT_STREAM
 
@@ -170,6 +176,17 @@ void trymatk()
    }
    Print(X); Print(Y);
    Aa.CleanUp(); Ba.CleanUp();
+   
+   // test special constructors used in Numerical Recipes for C++
+   Real a[] = {1.2, 5.6, 7.9, 3.8, 4.5, 1.3,
+               5.2, 9.9, 2.1, 4.7, 0.0, 1.6 };
+   ColumnVector CV0(12); CV0 << a;
+   ColumnVector CV1(a, 12); CV1 -= CV0; Print(CV1);
+   RowVector RV1(a, 12); RV1 -= CV0.AsRow(); Print(RV1);
+   Matrix RM1(a, 3, 4); RM1 -= CV0.AsMatrix(3,4); Print(RM1);
+   ColumnVector CV2(5.75, 15); CV2 -= 5.75; Print(CV2);
+   RowVector RV2(2.75, 15); RV2 -= 2.75; Print(RV2);
+   Matrix RM2(-3.75, 6, 4); RM2 += 3.75; Print(RM2);
 
 
 }
@@ -186,3 +203,6 @@ void trymatk()
 }
 
 #endif
+
+
+///@}

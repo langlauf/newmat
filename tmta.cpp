@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmta.cpp
+/// Part of matrix library test program.
+
 
 //#define WANT_STREAM
 
@@ -82,9 +88,9 @@ void trymata()
 
       UpperTriangularMatrix U(4);
       U(1,1)=1; U(1,2)=2; U(1,3)=3; U(1,4)=4;
-		U(2,2)=8; U(2,3)=7; U(2,4)=6;
-			  U(3,3)=2; U(3,4)=7;
-				    U(4,4)=1;
+	              U(2,2)=8; U(2,3)=7; U(2,4)=6;
+                          U(3,3)=2; U(3,4)=7;
+                                    U(4,4)=1;
       process(U,X1,X2);
 
       // check rowwise load
@@ -124,3 +130,6 @@ void trymata()
 
 //   cout << "\nEnd of tenth test\n";
 }
+
+
+///@}

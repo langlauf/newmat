@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt1.cpp
+/// Part of matrix library test program.
+
 
 #define WANT_STREAM
 
@@ -202,6 +208,85 @@ void trymat1()
 
    }
 
+   {
+      Tracer et1("Stage 8");
+      // Cross product
+      ColumnVector i(3); i << 1 << 0 << 0;
+      ColumnVector j(3); j << 0 << 1 << 0;
+      ColumnVector k(3); k << 0 << 0 << 1;
+      ColumnVector X;
+      X = CrossProduct(i,j) - k; Print(X);
+      X = CrossProduct(j,k) - i; Print(X);
+      X = CrossProduct(k,i) - j; Print(X);
+      X = CrossProduct(j,i) + k; Print(X);
+      X = CrossProduct(k,j) + i; Print(X);
+      X = CrossProduct(i,k) + j; Print(X);
+      X = CrossProduct(i,i); Print(X);
+      X = CrossProduct(j,j); Print(X);
+      X = CrossProduct(k,k); Print(X);
+
+      ColumnVector A(3); A << 2.25 << 1.75 << -7.5;
+      ColumnVector B(3); B << -0.5 << 4.75 << 3.25;
+      ColumnVector C(3); C << 9.25 << 3.5  << 1.25;
+
+      Real d0 = (A | B | C).Determinant();    // Vector triple product
+      Real d1 = DotProduct(CrossProduct(A, B), C);
+      Real d2 = DotProduct(CrossProduct(B, C), A);
+      Real d3 = DotProduct(CrossProduct(C, A), B);
+      X << (d1 - d0) << (d2 - d0) << (d3 - d0);
+      Clean(X, 0.000000001); Print(X);
+
+      X = CrossProduct(A, CrossProduct(B, C))
+        + CrossProduct(B, CrossProduct(C, A))
+        + CrossProduct(C, CrossProduct(A, B));
+      Print(X);
+
+      RowVector XT = CrossProduct(A.AsRow(), B.AsRow());
+      XT -= CrossProduct(A, B).AsRow();
+      Print(XT);
+   }
+
+   {
+      Tracer et1("Stage 9");
+      // More cross product
+      int i, j;
+      Matrix M(10,3), N(10,3);
+      for (i = 1; i<=10; i++) for (j = 1; j<=3; j++)
+         {  M(i,j) = 2*i-j; N(i,j) = i*j + 20; }
+
+      Matrix CP1 = CrossProductRows(M, N);
+      Matrix CP2(10,3);
+      for (i = 1; i<=10; i++)
+         CP2.Row(i) = CrossProduct(M.Row(i), N.Row(i));
+      CP2 -= CP1; Print(CP2);
+
+      CP2 = CrossProductColumns(M.t(), N.t());
+      CP2 -= CP1.t(); Print(CP2);
+   }
+
+   {
+      Tracer et1("Stage 10");
+      // Make sure RNG works
+      MultWithCarry mwc;
+      ColumnVector cv(10);
+      for (int i = 1; i <= 10; ++i) cv(i) = mwc.Next();
+      cv *= 100.0;
+      cv(1) -= 6.27874;	
+      cv(2) -= 42.1718;	
+      cv(3) -= 80.2854;	
+      cv(4) -= 12.961;	
+      cv(5) -= 17.7499;	
+      cv(6) -= 13.2657;	
+      cv(7) -= 50.4923;	
+      cv(8) -= 26.095;	
+      cv(9) -= 57.9147;	
+      cv(10) -= 30.1778;	
+      Clean(cv, 0.0001); Print(cv);
+   }
+
+
 //   cout << "\nEnd of first test\n";
 }
 
+
+///@}

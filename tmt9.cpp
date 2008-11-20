@@ -1,3 +1,9 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmt9.cpp
+/// Part of matrix library test program.
+
 //#define WANT_STREAM
 
 #include "include.h"
@@ -208,6 +214,80 @@ void trymat9()
       D = BX1.i() * X.SubMatrix(1,4,1,4) - I;  Clean(D,0.00000001); Print(D);
    }
 
+   {
+      Tracer et1("Stage 8");
+      // test copying CroutMatrix and BandLUMatrix - see also tmtd.cpp 
+      MultWithCarry MWC;
+      SymmetricBandMatrix SBM(50, 10);
+      for (int i = 1; i <= 50; ++i) for (int j = 1; j <= i; ++j)
+         if (i - j <= 10) SBM(i, j) = MWC.Next();
+      CroutMatrix CM = SBM; BandLUMatrix BM = SBM;
+      CroutMatrix CM1 = CM; BandLUMatrix BM1; BM1 = BM;
+      CM1.release(); BM1.release();
+      CroutMatrix CM2; CM2 = CM1; BandLUMatrix BM2 = BM1;
+      Matrix X = SBM.i(); Matrix Y = CM2.i() - X; Matrix Z = BM2.i() - X;
+      Clean(Y,0.00000001); Print(Y); Clean(Z,0.00000001); Print(Z);
+      X *= SBM; X -= IdentityMatrix(50); Clean(X,0.00000001); Print(X);
+      LogAndSign x = log_determinant(SBM);
+      LogAndSign y = log_determinant(CM2);
+      LogAndSign z = log_determinant(BM2);
+      RowVector D(4);
+      D(1) = y.value() - x.value();
+      D(2) = z.value() - x.value();
+      D(3) = y.sign() - x.sign();
+      D(4) = z.sign() - x.sign();
+      Clean(D,0.00000001); Print(D);
+   }
+
+   {
+      Tracer et1("Stage 9");
+      // do it again odd matrix size 
+      MultWithCarry MWC;
+      SymmetricBandMatrix SBM(51, 10);
+      for (int i = 1; i <= 51; ++i) for (int j = 1; j <= i; ++j)
+         if (i - j <= 10) SBM(i, j) = MWC.Next();
+      CroutMatrix CM = SBM; BandLUMatrix BM = SBM;
+      CroutMatrix CM1 = CM; BandLUMatrix BM1; BM1 = BM;
+      CM1.release(); BM1.release();
+      CroutMatrix CM2; CM2 = CM1; BandLUMatrix BM2 = BM1;
+      Matrix X = SBM.i(); Matrix Y = CM2.i() - X; Matrix Z = BM2.i() - X;
+      Clean(Y,0.00000001); Print(Y); Clean(Z,0.00000001); Print(Z);
+      X *= SBM; X -= IdentityMatrix(51); Clean(X,0.00000001); Print(X);
+      LogAndSign x = log_determinant(SBM);
+      LogAndSign y = log_determinant(CM2);
+      LogAndSign z = log_determinant(BM2);
+      RowVector D(4);
+      D(1) = y.value() - x.value();
+      D(2) = z.value() - x.value();
+      D(3) = y.sign() - x.sign();
+      D(4) = z.sign() - x.sign();
+      Clean(D,0.00000001); Print(D);
+   }
+   
+   {
+      Tracer et1("Stage 10");
+      // testing equal again
+      int i;
+      BandMatrix B(10,1,1), C;
+      for (i = 1; i <= 10; ++i) B(i, i) = 2;
+      for (i = 1; i <= 9; ++i) B(i, i+1) = B(i+1, i) = 2;
+      BandLUMatrix A;
+      A = B;
+      Matrix X = A.i() * B - IdentityMatrix(10); Clean(X,0.00000001); Print(X);
+      C = B * 2; B = C;
+      A = B;
+      X = A.i() * B - IdentityMatrix(10); Clean(X,0.00000001); Print(X);
+      B *= 3;
+      A = B;
+      X = A.i() * B - IdentityMatrix(10); Clean(X,0.00000001); Print(X);
+   }      
+   
+   
+   
+   
+   
 //   cout << "\nEnd of ninth test\n";
 }
 
+
+///@}

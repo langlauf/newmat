@@ -1,9 +1,16 @@
+/// \ingroup newmat
+///@{
+
+/// \file tmtm.cpp
+/// Part of matrix library test program.
+
 
 #define WANT_STREAM
 
 #define WANT_MATH
 
 #include "newmat.h"
+#include "newmatio.h"
 
 #include "tmt.h"
 
@@ -133,11 +140,10 @@ void trymatm()
       BMB.Row(3) << 0.5 << 2.5 << 8.5 << 7.5;
       BMB.Row(4) << 3.0 << 4.0 << 6.5;
 
-      Matrix B = BMB;
+      SquareMatrix B = BMB;
 
       BandMatrix BMC = KP(BMA, BMB);
-      BandMatrix BMC1(24,11,15);
-      BMC1.Inject(Matrix(KP(BMA, B)));  // not directly Band Matrix
+      BandMatrix BMC1 = KP(BMA, B);
       Matrix C2 = KP(A, BMB);
       Matrix C = KP(A, B);
 
@@ -213,8 +219,59 @@ void trymatm()
       N = KP(A.AsDiagonal(), B.AsDiagonal()) - C.AsDiagonal();    Print(N);
    }
 
+   {
+      Tracer et1("Stage 7");
+      IdentityMatrix I(3);
+      ColumnVector CV(4); CV << 4 << 3 << 1 << 7;
+      Matrix A = KP(I, CV) + 5;
+      Matrix B(3,12);
+      B.Row(1) << 9 << 8 << 6 << 12 << 5 << 5 << 5 << 5 << 5 << 5 << 5 << 5;
+      B.Row(2) << 5 << 5 << 5 << 5 << 9 << 8 << 6 << 12 << 5 << 5 << 5 << 5;
+      B.Row(3) << 5 << 5 << 5 << 5 << 5 << 5 << 5 << 5 << 9 << 8 << 6 << 12;
+      B -= A.t(); Print(B);
+
+   }
+
+   {
+      Tracer et1("Stage 8");          // SquareMatrix
+      Matrix A(2,3), B(3,2);
+      A << 2 << 6 << 7
+        << 4 << 3 << 9;
+      B << 1 << 3
+        << 4 << 8
+        << 0 << 6;
+      SquareMatrix AB = A * B;
+      Matrix M = (B.t() * A.t()).t(); M -= AB; Print(M);
+      AB = B * A;
+      M = (A.t() * B.t()).t(); M -= AB; Print(M);
+      AB.ReSize(5,5); AB = 0;
+      AB.SubMatrix(1,2,1,3) = A; AB.SubMatrix(4,5,3,5) = A;
+      AB.SubMatrix(1,3,4,5) = B; AB.SubMatrix(3,5,1,2) = B;
+      SquareMatrix C(5);
+      C.Row(1) << 2 << 6 << 7 << 1 << 3;
+      C.Row(2) << 4 << 3 << 9 << 4 << 8;
+      C.Row(3) << 1 << 3 << 0 << 0 << 6;
+      C.Row(4) << 4 << 8 << 2 << 6 << 7;
+      C.Row(5) << 0 << 6 << 4 << 3 << 9;
+      C -= AB; Print(C);
+      AB = A.SymSubMatrix(1,2);
+      AB = (AB | AB) & (AB | AB);
+      C.ReSize(4);
+      C.Row(1) << 2 << 6 << 2 << 6;
+      C.Row(2) << 4 << 3 << 4 << 3;
+      C.Row(3) << 2 << 6 << 2 << 6;
+      C.Row(4) << 4 << 3 << 4 << 3;
+      M = AB;
+      C -= M; Print(C);
+      C << M; C += -M; Print(C);
+      
+   }
+
+
 }
 
+
+///@}
 
 
 

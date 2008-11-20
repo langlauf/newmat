@@ -1,4 +1,8 @@
-// definition file for test programs
+/// \ingroup newmat
+///@{
+
+/// \file tmt.h
+/// Header file for test programs
 
 //#define DONT_DO_NRIC         // activate if running a bounds checker
 
@@ -16,6 +20,31 @@ public:
    ~time_lapse();
 };
 
+// random number generator
+
+class MultWithCarry
+{
+   unsigned long x;
+   unsigned long crry;
+
+   void NextValue();
+
+   void operator=(const MultWithCarry&) {}    // private so can't access
+
+public:
+   MultWithCarry(double s=0.46875);
+   Real Next();
+   ~MultWithCarry() {}
+};
+
+// fill a matrix with values from the MultWithCarry random number generator
+void FillWithValues(MultWithCarry& MWC, Matrix& M);   
+void FillWithValues(MultWithCarry& MWC, UpperTriangularMatrix& M);   
+void FillWithValues(MultWithCarry& MWC, LowerTriangularMatrix& M);   
+void FillWithValues(MultWithCarry& MWC, DiagonalMatrix& M);   
+void FillWithValues(MultWithCarry& MWC, SymmetricMatrix& M);   
+
+
 void Print(const Matrix& X);
 void Print(const UpperTriangularMatrix& X);
 void Print(const DiagonalMatrix& X);
@@ -30,6 +59,8 @@ void Clean(DiagonalMatrix&, Real);
 using namespace NEWMAT;
 #endif
 
+
+
 void trymat1(); void trymat2(); void trymat3();
 void trymat4(); void trymat5(); void trymat6();
 void trymat7(); void trymat8(); void trymat9();
@@ -38,6 +69,7 @@ void trymatd(); void trymate(); void trymatf();
 void trymatg(); void trymath(); void trymati();
 void trymatj(); void trymatk(); void trymatl();
 void trymatm();
+
 
 
 // body file: tmt.cpp
@@ -64,3 +96,5 @@ void trymatm();
 // body file: tmtl.cpp
 // body file: tmtm.cpp
 
+
+///@}
